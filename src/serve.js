@@ -15,16 +15,32 @@ const app = express();
 app.use(express.json());
 
 app.get("/categories", async (req, res) => {
-  const categories = await connection.query("SELECT * FROM categories;");
-  res.send(categories.rows);
+  try {
+    const categories = await connection.query("SELECT * FROM categories;");
+    res.send(categories.rows);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
 });
 
 app.post("/categories", async (req, res) => {
   const { name } = req.body;
-
-  await connection.query("INSERT INTO categories (name) VALUES ($1)", [name]);
-
+  try {
+    await connection.query("INSERT INTO categories (name) VALUES ($1)", [name]);
+  } catch (err) {
+    res.sendStatus(500);
+  }
   res.sendStatus(201);
+});
+
+app.get("/games", async (req, res) => {
+  try {
+    const games = await connection.query("SELECT * FROM games;");
+    res.send(games.rows);
+  } catch (err) {
+    res.sendStatus(500);
+  }
 });
 
 const port = process.env.PORT || 4000;
