@@ -64,8 +64,8 @@ app.get("/customers", async (req, res) => {
   try {
     if (cpf) {
       const clientes = await connection.query(
-        "SELECT * FROM customers WHERE cpf = $1;",
-        [cpf]
+        "SELECT * FROM customers WHERE cpf LIKE $1;",
+        [`${cpf}%`]
       );
 
       return res.send(clientes.rows);
@@ -74,7 +74,22 @@ app.get("/customers", async (req, res) => {
     const clientes = await connection.query("SELECT * FROM customers;");
     res.send(clientes.rows);
   } catch (err) {
-    console.log(err)
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/customers", async (req, res) => {
+  const { name, phone, cpf, birthday } = req.body;
+
+  try {
+    await connection.query(
+      "INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1,$2,$3,$4);",
+      [name, phone, cpf, birthday]
+    );
+    res.sendStatus(201)
+  } catch (err) {
+    console.log(err);
     res.sendStatus(500);
   }
 });
