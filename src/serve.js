@@ -58,5 +58,26 @@ app.post("/games", async (req, res) => {
   }
 });
 
+app.get("/customers", async (req, res) => {
+  const cpf = req.query.cpf;
+
+  try {
+    if (cpf) {
+      const clientes = await connection.query(
+        "SELECT * FROM customers WHERE cpf = $1;",
+        [cpf]
+      );
+
+      return res.send(clientes.rows);
+    }
+
+    const clientes = await connection.query("SELECT * FROM customers;");
+    res.send(clientes.rows);
+  } catch (err) {
+    console.log(err)
+    res.sendStatus(500);
+  }
+});
+
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server running in port ${port}`));
