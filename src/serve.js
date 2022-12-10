@@ -87,7 +87,23 @@ app.post("/customers", async (req, res) => {
       "INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1,$2,$3,$4);",
       [name, phone, cpf, birthday]
     );
-    res.sendStatus(201)
+    res.sendStatus(201);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.get("/customers/:id", async (req, res) => {
+  const clientId = req.params.id;
+
+  try {
+    const client = await connection.query(
+      "SELECT * FROM customers WHERE id = $1;",
+      [clientId]
+    );
+    if (!client.rows.length) return res.sendStatus(400);
+    res.send(client.rows);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
