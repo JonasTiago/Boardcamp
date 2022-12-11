@@ -1,6 +1,7 @@
 import express from "express";
 import pkg from "pg";
 import dayjs from "dayjs";
+import cors from "cors"
 
 const { Pool } = pkg;
 
@@ -14,6 +15,7 @@ const connection = new Pool({
 
 const app = express();
 app.use(express.json());
+app.use(cors())
 
 app.get("/categories", async (req, res) => {
   try {
@@ -240,6 +242,25 @@ app.post("/rentals/:id/return", async (req, res) => {
       [dayjs().format("YYYY-MM-DD"), parseInt(delayFeeValue), id]
     );
 
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.delete("/rentals/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const rent = await connection.query("SELECT * FROM rentals WHERE id = $1", [
+      id,
+    ]);
+
+    if (!rent.rows.length) return res.sendStatus(404);
+    if (!rent.rows[0].returnDate) return res.sendStatus(400);
+
+    await connection.query("DELETE FROM rentals WHERE id = $1;", [id]);
     res.sendStatus(200);
   } catch (err) {
     console.log(err);
