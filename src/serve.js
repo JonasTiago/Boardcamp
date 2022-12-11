@@ -134,6 +134,39 @@ app.put("/customers/:id", async (req, res) => {
   }
 });
 
+app.get("/rentals", async (req, res) => {
+  const { customerId, gameId } = req.query;
+
+  try {
+    if (customerId) {
+      const rentals = await connection.query(
+        'SELECT rentals.*, customers.name AS customerName, games.* FROM rentals JOIN customers ON rentals."customerId" = customers.id  JOIN games ON rentals."gameId" = games.id  WHERE "customerId" = $1;',
+        [customerId]
+      );
+
+      return res.send(rentals.rows);
+    }
+
+    if (gameId) {
+      const rentals = await connection.query(
+        'SELECT rentals.*, games.* FROM rentals JOIN games ON rentals."gameId" = games.id WHERE "gameId" = $1;',
+        [gameId]
+      );
+
+      return res.send(rentals.rows);
+    }
+
+    const rentals = await connection.query(
+      'SELECT rentals.*, customers.name AS customerName, games.id, games.name, games."categoryId", categories.name AS categoryName FROM rentals JOIN customers ON rentals."customerId" = customers.id JOIN games ON rentals."gameId" = games.id JOIN categories ON games."categoryId" = categories.id;'
+    );
+
+    res.send(rentals.rows);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(5000);
+  }
+});
+
 app.post("/rentals", async (req, res) => {
   const { customerId, gameId, daysRented } = req.body;
 
@@ -157,7 +190,7 @@ app.post("/rentals", async (req, res) => {
 
     const stockTotalGame = game.rows[0].stockTotal;
 
-     if ((stockTotalGame - rentedGame.rows.length) < 0) return res.sendStatus(400);
+    if (stockTotalGame - rentedGame.rows.length < 0) return res.sendStatus(400);
 
     const rent = {
       customerId,
@@ -177,7 +210,7 @@ app.post("/rentals", async (req, res) => {
         dayjs().format("YYYY-MM-DD"),
         daysRented,
         null,
-        daysRented*game.rows[0].pricePerDay,
+        daysRented * game.rows[0].pricePerDay,
         null,
       ]
     );
