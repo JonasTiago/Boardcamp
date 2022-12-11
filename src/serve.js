@@ -110,5 +110,25 @@ app.get("/customers/:id", async (req, res) => {
   }
 });
 
+app.put("/customers/:id", async (req, res) => {
+  const clientId = req.params.id;
+  const { name, phone, cpf, birthday } = req.body;
+
+  try {
+    const clientsCpf = await connection.query("SELECT cpf FROM customers WHERE NOT id = $1",[clientId]);
+
+    if(clientsCpf.rows.find(cpfs => cpfs.cpf === cpf)) return res.send(409)
+
+    await connection.query(
+      "UPDATE customers SET (name, phone, cpf, birthday) = ($1, $2, $3, $4) WHERE id = $5;",
+      [name, phone, cpf, birthday, clientId]
+    );
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server running in port ${port}`));
