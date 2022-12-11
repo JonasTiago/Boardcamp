@@ -1,5 +1,6 @@
 import express from "express";
 import pkg from "pg";
+import dayjs from "dayjs";
 
 const { Pool } = pkg;
 
@@ -115,15 +116,73 @@ app.put("/customers/:id", async (req, res) => {
   const { name, phone, cpf, birthday } = req.body;
 
   try {
-    const clientsCpf = await connection.query("SELECT cpf FROM customers WHERE NOT id = $1",[clientId]);
+    const clientsCpf = await connection.query(
+      "SELECT cpf FROM customers WHERE NOT id = $1",
+      [clientId]
+    );
 
-    if(clientsCpf.rows.find(cpfs => cpfs.cpf === cpf)) return res.send(409)
+    if (clientsCpf.rows.find((cpfs) => cpfs.cpf === cpf)) return res.send(409);
 
     await connection.query(
       "UPDATE customers SET (name, phone, cpf, birthday) = ($1, $2, $3, $4) WHERE id = $5;",
       [name, phone, cpf, birthday, clientId]
     );
     res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/rentals", async (req, res) => {
+  const { customerId, gameId, daysRented } = req.body;
+
+  try {
+    const cliet = await connection.query(
+      "SELECT * FROM customers WHERE id = $1;",
+      [String(customerId)]
+    );
+
+    const game = await connection.query("SELECT * FROM games WHERE id = $1;", [
+      String(gameId),
+    ]);
+
+    if (!cliet.rows.length || !game.rows.length || !daysRented)
+      return res.sendStatus(400);
+
+    const rentedGame = await connection.query(
+      'SELECT * FROM rentals WHERE "gameId" = $1;',
+      [game.rows[0].id]
+    );
+
+    const stockTotalGame = game.rows[0].stockTotal;
+
+     if ((stockTotalGame - rentedGame.rows.length) < 0) return res.sendStatus(400);
+
+    const rent = {
+      customerId,
+      gameId,
+      rentDate: dayjs().format("YYYY-MM-DD"),
+      daysRented,
+      returnDate: null,
+      originalPrice: daysRented,
+      delayFee: null,
+    };
+
+    await connection.query(
+      'INSERT INTO rentals ("customerId","gameId","rentDate","daysRented","returnDate","originalPrice","delayFee") VALUES ($1, $2, $3, $4, $5, $6, $7);',
+      [
+        customerId,
+        gameId,
+        dayjs().format("YYYY-MM-DD"),
+        daysRented,
+        null,
+        daysRented*game.rows[0].pricePerDay,
+        null,
+      ]
+    );
+
+    res.sendStatus(201);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
