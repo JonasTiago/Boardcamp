@@ -1,7 +1,7 @@
 import express from "express";
 import pkg from "pg";
 import dayjs from "dayjs";
-import cors from "cors"
+import cors from "cors";
 
 const { Pool } = pkg;
 
@@ -15,7 +15,7 @@ const connection = new Pool({
 
 const app = express();
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 app.get("/categories", async (req, res) => {
   try {
@@ -142,7 +142,7 @@ app.get("/rentals", async (req, res) => {
   try {
     if (customerId) {
       const rentals = await connection.query(
-        'SELECT rentals.*, customers.name AS customerName, games.* FROM rentals JOIN customers ON rentals."customerId" = customers.id  JOIN games ON rentals."gameId" = games.id  WHERE "customerId" = $1;',
+        `SELECT rentals.*, JSON_BUILD_OBJECT('id', customers.id, 'name', customers.name) AS "customer", JSON_BUILD_OBJECT('id', games.id, 'name', games.name, 'categoryId', games."categoryId", 'categoryName', categories.name) AS "game" FROM rentals JOIN customers ON rentals."customerId" = customers.id JOIN games ON rentals."gameId" = games.id JOIN categories ON games."categoryId" = categories.id  WHERE "customerId" = $1;`,
         [customerId]
       );
 
@@ -151,7 +151,7 @@ app.get("/rentals", async (req, res) => {
 
     if (gameId) {
       const rentals = await connection.query(
-        'SELECT rentals.*, games.* FROM rentals JOIN games ON rentals."gameId" = games.id WHERE "gameId" = $1;',
+        `SELECT rentals.*, JSON_BUILD_OBJECT('id', customers.id, 'name', customers.name) AS "customer", JSON_BUILD_OBJECT('id', games.id, 'name', games.name, 'categoryId', games."categoryId", 'categoryName', categories.name) AS "game" FROM rentals JOIN customers ON rentals."customerId" = customers.id JOIN games ON rentals."gameId" = games.id JOIN categories ON games."categoryId" = categories.id  WHERE "gameId" = $1;`,
         [gameId]
       );
 
@@ -159,7 +159,7 @@ app.get("/rentals", async (req, res) => {
     }
 
     const rentals = await connection.query(
-      'SELECT rentals.*, customers.name AS customerName, games.id, games.name, games."categoryId", categories.name AS categoryName FROM rentals JOIN customers ON rentals."customerId" = customers.id JOIN games ON rentals."gameId" = games.id JOIN categories ON games."categoryId" = categories.id;'
+      `SELECT rentals.*, JSON_BUILD_OBJECT('id', customers.id, 'name', customers.name) AS "customer", JSON_BUILD_OBJECT('id', games.id, 'name', games.name, 'categoryId', games."categoryId", 'categoryName', categories.name) AS "game" FROM rentals JOIN customers ON rentals."customerId" = customers.id JOIN games ON rentals."gameId" = games.id JOIN categories ON games."categoryId" = categories.id;`
     );
 
     res.send(rentals.rows);
