@@ -10,12 +10,13 @@ export async function findCategories(req, res) {
   }
 }
 
-export async function createCategories (req, res) {
-    const { name } = req.body;
-    try {
-      await connection.query("INSERT INTO categories (name) VALUES ($1)", [name]);
-    } catch (err) {
-      res.sendStatus(500);
-    }
-    res.sendStatus(201);
+export async function createCategories(req, res) {
+  const name = res.locals.name;
+  
+  try {
+    await connection.query("INSERT INTO categories (name) VALUES ($1)", [name]);
+  } catch (err) {
+    res.sendStatus(500);
+  }
+  res.sendStatus(201);
 }
