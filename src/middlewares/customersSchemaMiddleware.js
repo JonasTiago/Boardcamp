@@ -31,13 +31,14 @@ export default async function customerSchemaValidate(req, res, next) {
 
     if (clientsCpf.rows.find((cpfs) => cpfs.cpf === cpf))
       return res.sendStatus(409);
+
+    res.locals.customer = customer;
+    res.locals.id = clientId;
+    
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
   }
-
-  res.locals.customer = customer;
-  res.locals.id = clientId;
 
   next();
 }

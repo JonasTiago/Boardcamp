@@ -37,7 +37,7 @@ export default async function rentalsSchema(req, res, next) {
 
     if (stockTotalGame - rentedGame.rows.length < 0) return res.sendStatus(400);
 
-    const originalPrice = gameValid.rows[0].pricePerDay
+    const originalPrice = gameValid.rows[0].pricePerDay * daysRented
 
     const newRent = { customerId, gameId, daysRented, originalPrice}
 

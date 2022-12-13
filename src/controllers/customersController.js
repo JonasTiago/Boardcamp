@@ -45,7 +45,7 @@ export async function SearchCustomerById(req, res) {
       [clientId]
     );
     if (!client.rows.length) return res.sendStatus(400);
-    res.send(client.rows);
+    res.send(client.rows[0]);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -54,7 +54,7 @@ export async function SearchCustomerById(req, res) {
 
 export async function updateCustomer(req, res) {
   const { name, phone, cpf, birthday } = res.locals.customer;
-  const clientId = res.locals.clientId;
+  const clientId = res.locals.id;
 
   try {
 
