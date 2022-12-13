@@ -21,7 +21,7 @@ export default async function gamesSchema(req, res, next) {
 
   try {
     const categoryValid = await connection.query(
-      "SELECT * FROM categories WHERE id= $1",
+      "SELECT * FROM categories WHERE id = $1",
       [categoryId]
     );
 

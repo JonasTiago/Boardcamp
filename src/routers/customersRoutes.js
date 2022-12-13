@@ -5,12 +5,13 @@ import {
   SearchCustomerById,
   updateCustomer,
 } from "../controllers/customersController.js";
+import customerSchemaValidate from "../middlewares/customersSchemaMiddleware.js";
 
 const router = Router();
 
 router.get("/customers", listCustomers);
-router.post("/customers", insertCustomer);
+router.post("/customers", customerSchemaValidate, insertCustomer);
 router.get("/customers/:id", SearchCustomerById);
-router.put("/customers/:id", updateCustomer);
+router.put("/customers/:id",customerSchemaValidate, updateCustomer);
 
 export default router;

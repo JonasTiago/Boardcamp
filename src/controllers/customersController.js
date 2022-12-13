@@ -22,7 +22,7 @@ export async function listCustomers(req, res) {
 }
 
 export async function insertCustomer(req, res) {
-  const { name, phone, cpf, birthday } = req.body;
+  const { name, phone, cpf, birthday } = res.locals.customer;
 
   try {
     await connection.query(
@@ -53,16 +53,10 @@ export async function SearchCustomerById(req, res) {
 }
 
 export async function updateCustomer(req, res) {
-  const clientId = req.params.id;
-  const { name, phone, cpf, birthday } = req.body;
+  const { name, phone, cpf, birthday } = res.locals.customer;
+  const clientId = res.locals.clientId;
 
   try {
-    const clientsCpf = await connection.query(
-      "SELECT cpf FROM customers WHERE NOT id = $1",
-      [clientId]
-    );
-
-    if (clientsCpf.rows.find((cpfs) => cpfs.cpf === cpf)) return res.send(409);
 
     await connection.query(
       "UPDATE customers SET (name, phone, cpf, birthday) = ($1, $2, $3, $4) WHERE id = $5;",
